@@ -1,30 +1,49 @@
-const BASE_URL = "https://assets.breatheco.de/apis/fake/contact/";
-const getState = ({ getStore, setStore }) => {
+const BASE_URL = "http://localhost:3000";
+
+const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
-			contacts: []
+			contacts: [],
+			singleContact: {}
 			//Your data structures, A.K.A Entities
 		},
 		actions: {
-			getContacts: () => {
-				fetch(BASE_URL + "agenda/Thomas_Gamboa")
-					.then(response => response.json())
-					.then(contactList =>
+			fetchContacts: async (id = null) => {
+				let url = BASE_URL + "/contacts";
+				if (id != null) {
+					url += "/" + id;
+				}
+				let response = await fetch(url);
+				if (response.ok) {
+					let body = await response.json();
+					if (id == null) {
 						setStore({
-							contacts: contactList
-						})
-					);
+							contacts: body
+						});
+					} else {
+						setStore({ singleContact: body });
+					}
+					return true;
+				} else {
+					console.log(response.status);
+					return false;
+				}
+			},
+			deleteContact: async id => {
+				let actions = getActions();
+				let url = BASE_URL + "/contacts/" + id;
+				let response = await fetch(url, {
+					method: "DELETE"
+				});
+				if (response.ok) {
+					await actions.fetchContacts();
+					return true;
+				} else {
+					console.log(response.status);
+					return false;
+				}
 			}
-			deleteContact: () => {
-				fetch((BASE_URL + "id"), {
-					method: "DELETE",
-					headers:{'Content-Type': 'application/json'}
-				})
-				.then(response => response.json())
-				.then(contactList =>
-					
-					)
-			}
+
 			//(Arrow) Functions that update the Store
 			// Remember to use the scope: scope.state.store & scope.setState()
 		}
